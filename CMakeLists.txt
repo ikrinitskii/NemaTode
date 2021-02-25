@@ -5,6 +5,16 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+add_compile_options(
+		-fpic
+		-fno-gnu-unique
+		-Wall
+		-Wextra
+		-pedantic
+		-Wno-missing-field-initializers
+		-Wno-unknown-pragmas
+)
+
 set(CMAKE_RELEASE_POSTFIX "" CACHE STRING "Add postfix to target for Release build.")
 set(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "Add postfix to target for Debug build.")
 set(CMAKE_RELWITHDEBINFO_POSTFIX "rd" CACHE STRING "Add postfix to target for RelWithDebInfo build.")
