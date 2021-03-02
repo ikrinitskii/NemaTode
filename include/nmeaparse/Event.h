@@ -35,15 +35,15 @@ namespace nmea {
 		static uint64_t LastID;
 
 		// Properties
-		uint64_t ID;
+		uint64_t ID{};
 		std::function<void(Args...)> handler;
 
 		// Functions
 		void _copy(const EventHandler& ref){
 			if (&ref != this){
 				_iterator = ref._iterator;
+                ID = ref.ID;
 				handler = ref.handler;
-				ID = ref.ID;
 			}
 		}
 
@@ -58,14 +58,14 @@ namespace nmea {
 		// (none)
 
 		// Functions
-		EventHandler(std::function<void(Args...)> h) : _iterator(), handler(h), ID(++LastID)
+		explicit EventHandler(std::function<void(Args...)> h) : _iterator(), ID(++LastID), handler(h)
 		{}
 
 		EventHandler(const EventHandler& ref){
 			_copy(ref);
 		}
 
-		virtual ~EventHandler(){};
+		virtual ~EventHandler() = default;
 
 		EventHandler& operator=(const EventHandler& ref){
 			_copy(ref);
@@ -138,14 +138,13 @@ namespace nmea {
 		// (none)
 
 		// Properties
-		bool enabled;
+		bool enabled{};
 
 		// Functions
 		Event() : enabled(true)
 		{}
 
-		virtual ~Event() 
-		{}
+		virtual ~Event() = default;
 
 		Event(const Event& ref) 	{
 			_copy(ref);
@@ -203,7 +202,7 @@ namespace nmea {
 		bool operator -=(EventHandler<void(Args...)>& handler)							{ return removeHandler(handler); };
 		bool operator -=(uint64_t handlerID)											{ return removeHandler(handlerID); };
 
-		EventHandler<void(Args...)>& operator =(const EventHandler<void(Args...)>& ref){
+		EventHandler<void(Args...)>& operator =(const EventHandler<void(Args...)>& ref) {
 			_copy(ref);
 			return *this;
 		};
