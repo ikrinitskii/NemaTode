@@ -19,11 +19,11 @@ namespace nmea {
 		public:
 			std::string message;
 			std::string name;
-			char checksum;
+			char checksum{};
 			NMEACommand();
 			virtual ~NMEACommand();
 			virtual std::string toString();
-			std::string addChecksum(std::string s);
+			std::string addChecksum(const std::string& s);
 		};
 
 
@@ -57,7 +57,7 @@ namespace nmea {
 				stopbits = 1;
 				parity = 0;
 			};
-			virtual std::string toString();
+			std::string toString() override;
 		};
 
 		class NMEACommandQueryRate : public NMEACommand {
@@ -108,7 +108,7 @@ namespace nmea {
 				rate = 0;
 				checksumEnable = 1;
 			};
-			virtual std::string toString();
+			std::string toString() override;
 		};
 
 

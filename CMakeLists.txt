@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_compile_options(
-		-fpic
+		-fPIC
 		-fno-gnu-unique
 		-Wall
 		-Wextra
@@ -57,11 +57,11 @@ install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # We have no other dependencies, so we export direct to NemaTodeConfig
 # instead of using write_basic_package_version_file to generate a helper file
+
 install(TARGETS ${PROJECT_NAME}
 	EXPORT NemaTodeConfig
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	PUBLIC_HEADER DESTINATION include
 )
 
@@ -87,3 +87,8 @@ target_link_libraries(demo_advanced ${PROJECT_NAME})
 # build demo_simple
 add_executable(demo_simple demo_simple.cpp)
 target_link_libraries(demo_simple ${PROJECT_NAME})
+
+set_target_properties( ${PROJECT_NAME} PROPERTIES
+		ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib
+		PREFIX "l"
+		)

@@ -24,7 +24,7 @@ using namespace nmea;
 // ======================== GPS SATELLITE ====================
 // ===========================================================
 
-string GPSSatellite::toString(){
+string GPSSatellite::toString() const{
 	stringstream ss;
 
 	ss << "[PRN: " << setw(3) << setfill(' ') << prn << " "
@@ -35,7 +35,7 @@ string GPSSatellite::toString(){
 
 	return ss.str();
 }
-GPSSatellite::operator std::string(){
+GPSSatellite::operator std::string() const{
 	return toString();
 }
 
@@ -60,7 +60,7 @@ void GPSAlmanac::updateSatellite(GPSSatellite sat){
 
 	satellites.push_back(sat);
 }
-double GPSAlmanac::percentComplete(){
+double GPSAlmanac::percentComplete() const{
 	if (totalPages == 0){
 		return 0.0;
 	}
@@ -125,7 +125,7 @@ double GPSAlmanac::maxSNR(){
 // ===========================================================
 
 
-GPSTimestamp::GPSTimestamp(){
+GPSTimestamp::GPSTimestamp() {
 	hour = 0;
 	min = 0;
 	sec = 0;
@@ -136,7 +136,7 @@ GPSTimestamp::GPSTimestamp(){
 
 	rawTime = 0;
 	rawDate = 0;
-};
+}
 
 // indexed from 1!
 std::string GPSTimestamp::monthName(uint32_t index){
@@ -161,10 +161,10 @@ std::string GPSTimestamp::monthName(uint32_t index){
 		"December"
 	};
 	return names[index - 1];
-};
+}
 
 // Returns seconds since Jan 1, 1970. Classic Epoch time.
-time_t GPSTimestamp::getTime() {
+time_t GPSTimestamp::getTime() const {
 	struct tm t = { 0 };
 	t.tm_year = year - 1900;	// This is year-1900, so 112 = 2012
 	t.tm_mon = month;			// month from 0:Jan
@@ -199,11 +199,11 @@ void GPSTimestamp::setDate(int32_t raw_date){
 	}
 }
 
-std::string GPSTimestamp::toString(){
+std::string GPSTimestamp::toString() const{
 	std::stringstream ss;
 	ss << hour << "h " << min << "m " << sec << "s" << "  " << monthName(month) << " " << day << " " << year;
 	return ss.str();
-};
+}
 
 
 
@@ -221,7 +221,7 @@ GPSFix::GPSFix() {
 	status = 'V';	// Void
 	type = 1;		// 1=none, 2=2d, 3=3d
 
-	haslock = 0;
+	haslock = false;
 
 	dilution = 0;		
 	horizontalDilution = 0;		// Horizontal - Best is 1, >20 is terrible, so 0 means uninitialized
@@ -237,13 +237,12 @@ GPSFix::GPSFix() {
 
 }
 
-GPSFix::~GPSFix() {
+GPSFix::~GPSFix()= default;
 	// TODO Auto-generated destructor stub
-}
 
 // Returns the duration since the Host has received information
-seconds GPSFix::timeSinceLastUpdate(){
-	time_t now = time(NULL);
+seconds GPSFix::timeSinceLastUpdate() const{
+	time_t now = time(nullptr);
 	struct tm stamp = { 0 };
 
 	stamp.tm_hour = timestamp.hour;
@@ -254,11 +253,11 @@ seconds GPSFix::timeSinceLastUpdate(){
 	stamp.tm_mday = timestamp.day;
 
 	time_t then = mktime(&stamp);
-	uint64_t secs = (uint64_t)difftime(now,then);
+	auto secs = (uint64_t)difftime(now,then);
 	return seconds((uint64_t)secs);
 }
 
-bool GPSFix::hasEstimate(){
+bool GPSFix::hasEstimate() const{
 	return (latitude != 0 && longitude != 0) || (quality == 6);
 }
 
@@ -270,18 +269,18 @@ bool GPSFix::setlock(bool locked){
 	return false;
 }
 
-bool GPSFix::locked(){
+bool GPSFix::locked() const{
 	return haslock;
 }
 
 // Returns meters
-double GPSFix::horizontalAccuracy(){
+double GPSFix::horizontalAccuracy() const{
 	// horizontal 2drms 95% = 4.0  -- from GPS CHIP datasheets
 	return 4.0 * horizontalDilution;
 }
 
 // Returns meters
-double GPSFix::verticalAccuracy(){
+double GPSFix::verticalAccuracy() const{
 	// Vertical 2drms 95% = 6.0  -- from GPS CHIP datasheets
 	return 6.0 * verticalDilution;
 }
@@ -290,7 +289,7 @@ double GPSFix::verticalAccuracy(){
 std::string GPSFix::travelAngleToCompassDirection(double deg, bool abbrev){
 
 	//normalize, just in case
-	int32_t c = (int32_t)round(deg / 360.0 * 8.0);
+	auto c = (int32_t)round(deg / 360.0 * 8.0);
 	int32_t r = c % 8;
 	if (r < 0){
 		r = 8 + r;
@@ -325,7 +324,7 @@ std::string GPSFix::travelAngleToCompassDirection(double deg, bool abbrev){
 		return dirs[r];
 	}
 	
-};
+}
 
 
 std::string fixStatusToString(char status){

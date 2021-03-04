@@ -7,7 +7,7 @@
  *  See the license file included with this source.
  */
 
-
+#include <nmeaparse/NMEAParser.h>
 #include <nmeaparse/GPSService.h>
 #include <nmeaparse/NumberConversion.h>
 
@@ -22,7 +22,7 @@ using namespace nmea;
 
 // ------ Some helpers ----------
 // Takes the NMEA lat/long format (dddmm.mmmm, [N/S,E/W]) and converts to degrees N,E only
-double convertLatLongToDeg(string llstr, string dir){
+double convertLatLongToDeg(const string& llstr, string dir){
 
 	double pd = parseDouble(llstr);
 	double deg = trunc(pd / 100);				//get ddd from dddmm.mmmm
@@ -57,9 +57,7 @@ GPSService::GPSService(NMEAParser& parser) {
 	attachToParser(parser);		// attach to parser in the GPS object
 }
 
-GPSService::~GPSService() {
-	// TODO Auto-generated destructor stub
-}
+GPSService::~GPSService() = default;
 
 void GPSService::attachToParser(NMEAParser& _parser){
 
@@ -97,7 +95,7 @@ void GPSService::attachToParser(NMEAParser& _parser){
 
 
 
-void GPSService::read_PSRF150(const NMEASentence& nmea){
+void GPSService::read_PSRF150(const NMEASentence& ){
 	// nothing right now...
 	// Called with checksum 3E (valid) for GPS turning ON
 	// Called with checksum 3F (invalid) for GPS turning OFF
@@ -191,20 +189,18 @@ void GPSService::read_GPGGA(const NMEASentence& nmea){
 		}
 
 		//calling handlers
-		if (lockupdate){
+		if (lockupdate) {
 			this->onLockStateChanged(this->fix.haslock);
 		}
 		this->onUpdate();
 	}
 	catch (NumberConversionError& ex)
 	{
-		NMEAParseError pe("GPS Number Bad Format [$GPGGA] :: " + ex.message, nmea);
-		throw pe;
+		throw NMEAParseError("GPS Number Bad Format [$GPGGA] :: " + ex.message, nmea);
 	}
 	catch (NMEAParseError& ex)
 	{
-		NMEAParseError pe("GPS Data Bad Format [$GPGGA] :: " + ex.message, nmea);
-		throw pe;
+		throw NMEAParseError("GPS Data Bad Format [$GPGGA] :: " + ex.message, nmea);
 	}
 }
 
@@ -265,24 +261,22 @@ void GPSService::read_GPGSA(const NMEASentence& nmea){
 		this->fix.verticalDilution = vdop;
 
 		//calling handlers
-		if (lockupdate){
+		if (lockupdate) {
 			this->onLockStateChanged(this->fix.haslock);
 		}
 		this->onUpdate();
 	}
 	catch (NumberConversionError& ex)
 	{
-		NMEAParseError pe("GPS Number Bad Format [$GPGSA] :: " + ex.message, nmea);
-		throw pe;
+		throw NMEAParseError("GPS Number Bad Format [$GPGSA] :: " + ex.message, nmea);
 	}
 	catch (NMEAParseError& ex)
 	{
-		NMEAParseError pe("GPS Data Bad Format [$GPGSA] :: " + ex.message, nmea);
-		throw pe;
+		throw NMEAParseError("GPS Data Bad Format [$GPGSA] :: " + ex.message, nmea);
 	}
 }
 
-void GPSService::read_GPGSV(const NMEASentence& nmea){
+void GPSService::read_GPGSV(const NMEASentence& nmea) {
 	/*  -- EXAMPLE --
 	$GPGSV,2,1,08,01,40,083,46,02,17,308,41,12,07,344,39,14,22,228,45*75
 
@@ -307,7 +301,7 @@ void GPSService::read_GPGSV(const NMEASentence& nmea){
 
 	try
 	{
-		if (!nmea.checksumOK()){
+		if (!nmea.checksumOK()) {
 			throw NMEAParseError("Checksum is invalid!");
 		}
 
@@ -318,12 +312,12 @@ void GPSService::read_GPGSV(const NMEASentence& nmea){
 
 		// VISIBLE SATELLITES
 		this->fix.visibleSatellites = (int32_t)parseInt(nmea.parameters[2]);
-		if (this->fix.trackingSatellites == 0){
+		if (this->fix.trackingSatellites == 0) {
 			this->fix.visibleSatellites = 0;			// if no satellites are tracking, then none are visible!
 		}												// Also NMEA defaults to 12 visible when chip powers on. Obviously not right.
 
-		uint32_t totalPages = (uint32_t)parseInt(nmea.parameters[0]);
-		uint32_t currentPage = (uint32_t)parseInt(nmea.parameters[1]);
+		auto totalPages = static_cast<uint32_t>(parseInt(nmea.parameters[0]));
+		auto currentPage = static_cast<uint32_t>(parseInt(nmea.parameters[1]));
 
 
 		//if this is the first page, then reset the almanac
@@ -336,7 +330,7 @@ void GPSService::read_GPGSV(const NMEASentence& nmea){
 		this->fix.almanac.totalPages = totalPages;
 		this->fix.almanac.visibleSize = this->fix.visibleSatellites;
 
-		int entriesInPage = (nmea.parameters.size() - 3) >> 2;	//first 3 are not satellite info
+		auto entriesInPage = static_cast<int>((nmea.parameters.size() - 3) >> 2);	//first 3 are not satellite info
 		//- entries come in 4-ples, and truncate, so used shift
 		GPSSatellite sat;
 		for (int i = 0; i < entriesInPage; i++){
@@ -366,13 +360,11 @@ void GPSService::read_GPGSV(const NMEASentence& nmea){
 	}
 	catch (NumberConversionError& ex)
 	{
-		NMEAParseError pe("GPS Number Bad Format [$GPGSV] :: " + ex.message, nmea);
-		throw pe;
+		throw NMEAParseError("GPS Number Bad Format [$GPGSV] :: " + ex.message, nmea);
 	}
 	catch (NMEAParseError& ex)
 	{
-		NMEAParseError pe("GPS Data Bad Format [$GPGSV] :: " + ex.message, nmea);
-		throw pe;
+		throw NMEAParseError("GPS Data Bad Format [$GPGSV] :: " + ex.message, nmea);
 	}
 }
 
@@ -427,22 +419,18 @@ void GPSService::read_GPRMC(const NMEASentence& nmea){
 
 
 		// ACTIVE
-		bool lockupdate = false;
+		bool lockupdate;
 		char status = 'V';
 		if (!nmea.parameters[1].empty()){
 			status = nmea.parameters[1][0];
 		}
 		this->fix.status = status;
-		if (status == 'V'){
-			lockupdate = this->fix.setlock(false);
-		}
-		else if (status == 'A') {
+		if (status == 'A') {
 			lockupdate = this->fix.setlock(true);
 		}
 		else {
-			lockupdate = this->fix.setlock(false);		//not A or V, so must be wrong... no lock
+			lockupdate = this->fix.setlock(false); //V or must be wrong... no lock
 		}
-
 
 		this->fix.speed = convertKnotsToKilometersPerHour(parseDouble(nmea.parameters[6]));		// received as knots, convert to km/h
 		this->fix.travelAngle = parseDouble(nmea.parameters[7]);
@@ -457,13 +445,11 @@ void GPSService::read_GPRMC(const NMEASentence& nmea){
 	}
 	catch (NumberConversionError& ex)
 	{
-		NMEAParseError pe("GPS Number Bad Format [$GPRMC] :: " + ex.message, nmea);
-		throw pe;
+		throw NMEAParseError("GPS Number Bad Format [$GPRMC] :: " + ex.message, nmea);
 	}
 	catch (NMEAParseError& ex)
 	{
-		NMEAParseError pe("GPS Data Bad Format [$GPRMC] :: " + ex.message, nmea);
-		throw pe;
+		throw NMEAParseError("GPS Data Bad Format [$GPRMC] :: " + ex.message, nmea);
 	}
 }
 
@@ -499,13 +485,11 @@ void GPSService::read_GPVTG(const NMEASentence& nmea){
 	}
 	catch (NumberConversionError& ex)
 	{
-		NMEAParseError pe("GPS Number Bad Format [$GPVTG] :: " + ex.message, nmea);
-		throw pe;
+		throw NMEAParseError("GPS Number Bad Format [$GPVTG] :: " + ex.message, nmea);
 	}
 	catch (NMEAParseError& ex)
 	{
-		NMEAParseError pe("GPS Data Bad Format [$GPVTG] :: " + ex.message, nmea);
-		throw pe;
+		throw NMEAParseError("GPS Data Bad Format [$GPVTG] :: " + ex.message, nmea);
 	}
 }
 

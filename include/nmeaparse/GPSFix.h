@@ -42,8 +42,8 @@ namespace nmea {
 		uint32_t prn;		// id - 0-32
 		double elevation;	// 0-90 deg
 		double azimuth;		// 0-359 deg
-		std::string toString();
-		operator std::string();
+		std::string toString() const;
+		explicit operator std::string() const;
 	};
 
 
@@ -57,7 +57,7 @@ namespace nmea {
 	class GPSAlmanac {
 		friend GPSService;
 	private:
-		uint32_t visibleSize;
+		uint32_t visibleSize{};
 		uint32_t lastPage;
 		uint32_t totalPages;
 		uint32_t processedPages;
@@ -75,7 +75,7 @@ namespace nmea {
 		double averageSNR();
 		double minSNR();
 		double maxSNR();
-		double percentComplete();
+		double percentComplete() const;
 
 	};
 
@@ -87,7 +87,7 @@ namespace nmea {
 	// UTC time
 	class GPSTimestamp {
 	private:
-		std::string monthName(uint32_t index);
+		static std::string monthName(uint32_t index);
 	public:
 		GPSTimestamp();
 
@@ -103,7 +103,7 @@ namespace nmea {
 		double rawTime;
 		int32_t rawDate;
 
-		time_t getTime();
+		time_t getTime() const;
 
 		// Set directly from the NMEA time stamp
 		// hhmmss.sss
@@ -113,7 +113,7 @@ namespace nmea {
 		// ddmmyy
 		void setDate(int32_t raw_date);
 
-		std::string toString();
+		std::string toString() const;
 	};
 
 
@@ -164,15 +164,15 @@ namespace nmea {
 		int32_t trackingSatellites;
 		int32_t visibleSatellites;
 
-		bool locked();
-		double horizontalAccuracy();
-		double verticalAccuracy();
-		bool hasEstimate();
+		bool locked() const;
+		double horizontalAccuracy() const;
+		double verticalAccuracy() const;
+		bool hasEstimate() const;
 		
-		std::chrono::seconds timeSinceLastUpdate();	// Returns seconds difference from last timestamp and right now.
+		std::chrono::seconds timeSinceLastUpdate() const;	// Returns seconds difference from last timestamp and right now.
 
 		std::string toString();
-		operator std::string();
+		explicit operator std::string();
 
 		static std::string travelAngleToCompassDirection(double deg, bool abbrev = false);
 	};

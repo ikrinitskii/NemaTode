@@ -9,10 +9,10 @@
 
 #include <nmeaparse/NMEAParser.h>
 #include <nmeaparse/NumberConversion.h>
-#include <sstream>
 #include <iostream>
 #include <algorithm>
 #include <cctype>
+#include <utility>
 
 using namespace std;
 using namespace nmea;
@@ -22,20 +22,22 @@ using namespace nmea;
 // --------- NMEA PARSE ERROR--------------
 
 NMEAParseError::NMEAParseError(std::string msg)
-	: message(msg)
+	: message(std::move(msg))
 {}
-NMEAParseError::NMEAParseError(std::string msg, NMEASentence n)
-	: message(msg), nmea(n)
-{}
-
-NMEAParseError::~NMEAParseError()
+NMEAParseError::NMEAParseError(std::string msg, const NMEASentence& n)
+	: message(std::move(msg)), nmea(n)
 {}
 
-std::string NMEAParseError::what(){
-	return message;
+const char *NMEAParseError::what() const noexcept
+{
+    return message.c_str();
 }
 
-
+NMEAParseError::NMEAParseError(const NMEAParseError &other) noexcept
+:
+    message{other.message},
+    nmea{other.nmea}
+{}
 
 
 // --------- NMEA SENTENCE --------------
@@ -43,12 +45,11 @@ std::string NMEAParseError::what(){
 NMEASentence::NMEASentence() 
 : isvalid(false)
 , checksumIsCalculated(false)
-, calculatedChecksum(0)
 , parsedChecksum(0)
+, calculatedChecksum(0)
 { }
 
-NMEASentence::~NMEASentence()
-{ }
+NMEASentence::~NMEASentence() = default;
 
 bool NMEASentence::valid() const {
 	return isvalid;
@@ -63,25 +64,26 @@ bool NMEASentence::checksumOK() const {
 
 
 // true if the text contains a non-alpha numeric value
-bool hasNonAlphaNum(string txt){
-	for (const char i : txt){
-		if ( !isalnum(i) ){
-			return true;
-		}
-	}
-	return false;
+bool hasNonAlphaNum(const string& txt){
+    return std::any_of(txt.cbegin(), txt.cend(), [](const char c) {
+        if ( !isalnum(c) ) {
+            return true;
+        } else
+            return false;
+    });
 }
 
 // true if alphanumeric or '-'
-bool validParamChars(string txt){
-	for (const char i : txt){
-		if (!isalnum(i)){
-			if (i != '-' && i != '.'){
-				return false;
-			}
-		}
-	}
-	return true;
+bool validParamChars(const string& txt){
+    return std::all_of(txt.cbegin(), txt.cend(), [](const char c) {
+        if (!isalnum(c)) {
+            if (c != '-' && c != '.'){
+                return false;
+            } else
+                return true;
+        } else
+            return true;
+    });
 }
 
 // remove all whitespace
@@ -109,16 +111,16 @@ void trim(string& str){
 
 
 NMEAParser::NMEAParser() 
-: log(false)
-, maxbuffersize(NMEA_PARSER_MAX_BUFFER_SIZE)
-, fillingbuffer(false)
+:
+  fillingbuffer(false),
+  maxbuffersize(NMEA_PARSER_MAX_BUFFER_SIZE),
+  log(false)
 { }
 
-NMEAParser::~NMEAParser() 
-{ }
+NMEAParser::~NMEAParser() = default;
 
 
-void NMEAParser::setSentenceHandler(std::string cmdKey, std::function<void(const NMEASentence&)> handler){
+void NMEAParser::setSentenceHandler(const std::string& cmdKey, const std::function<void(const NMEASentence&)>& handler){
 	eventTable.erase(cmdKey);
 	eventTable.insert({ cmdKey, handler });
 }
@@ -194,17 +196,17 @@ void NMEAParser::readLine(string cmd){
 }
 
 // Loggers
-void NMEAParser::onInfo(NMEASentence& nmea, string txt){
+void NMEAParser::onInfo(NMEASentence& , const string& txt) const{
 	if (log){
 		cout << "[Info]    " << txt << endl;
 	}
 }
-void NMEAParser::onWarning(NMEASentence& nmea, string txt){
+void NMEAParser::onWarning(NMEASentence& , const string& txt) const{
 	if (log){
 		cout << "[Warning] " << txt << endl;
 	}
 }
-void NMEAParser::onError(NMEASentence& nmea, string txt){
+void NMEAParser::onError(NMEASentence& , const string& txt){
 	throw NMEAParseError("[ERROR] " + txt);
 }
 
@@ -304,7 +306,7 @@ void NMEAParser::readSentence(std::string cmd){
 
 // takes the string *between* the '$' and '*' in nmea sentence,
 // then calculates a rolling XOR on the bytes
-uint8_t NMEAParser::calculateChecksum(string s){
+uint8_t NMEAParser::calculateChecksum(const string& s){
 	uint8_t checksum = 0;
 	for (const char i : s){
 		checksum = checksum ^ i;
@@ -332,7 +334,7 @@ void NMEAParser::parseText(NMEASentence& nmea, string txt){
 	nmea.text = txt;		// save the received text of the sentence
 
 	// Looking for index of last '$'
-	size_t startbyte = 0;
+	size_t startbyte;
 	size_t dollar = txt.find_last_of('$');
 	if (dollar == string::npos){
 		// No dollar sign... INVALID!
@@ -398,7 +400,7 @@ void NMEAParser::parseText(NMEASentence& nmea, string txt){
 
 	//comma is the last character/only comma
 	if (comma + 1 == txt.size()){		
-		nmea.parameters.push_back("");
+		nmea.parameters.emplace_back("");
 		nmea.isvalid = true;
 		return;	
 	}
@@ -427,7 +429,7 @@ void NMEAParser::parseText(NMEASentence& nmea, string txt){
 		}
 
 		//cout << "NMEA parser Warning: extra comma at end of sentence, but no information...?" << endl;		// it's actually standard, if checksum is disabled
-		nmea.parameters.push_back("");
+		nmea.parameters.emplace_back("");
 
 		stringstream sz;
 		sz << "Found " << nmea.parameters.size() << " parameters.";
@@ -482,11 +484,7 @@ void NMEAParser::parseText(NMEASentence& nmea, string txt){
 		}
 	}
 
-
 	nmea.isvalid = true;
-
-	return;
-
 }
 
 
