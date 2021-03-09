@@ -58,14 +58,15 @@ install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 # We have no other dependencies, so we export direct to NemaTodeConfig
 # instead of using write_basic_package_version_file to generate a helper file
 
-install(TARGETS ${PROJECT_NAME}
+#[[install(TARGETS ${PROJECT_NAME}
 	EXPORT NemaTodeConfig
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	ARCHIVE DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/lib
 	PUBLIC_HEADER DESTINATION include
-)
+)]]
 
-install(EXPORT NemaTodeConfig
+#[[install(EXPORT NemaTodeConfig
 	DESTINATION ${INSTALL_CONFIGDIR}
 	NAMESPACE ${PROJECT_NAME}::
 )
@@ -78,7 +79,7 @@ write_basic_package_version_file(
 install(
 	FILES ${CMAKE_CURRENT_BINARY_DIR}/NemaTodeVersion.cmake
 	DESTINATION ${INSTALL_CONFIGDIR}
-)
+)]]
 
 # build demo_advanced
 add_executable(demo_advanced demo_advanced.cpp)
