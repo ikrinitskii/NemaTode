@@ -391,6 +391,7 @@ void GPSService::read_GPRMC(const NMEASentence& nmea){
 
 		// TIMESTAMP
 		this->fix.timestamp.setTime(parseDouble(nmea.parameters[0]));
+		this->fix.timestamp.setTimeMilliseconds(nmea.parameters[0]);
 
 		string sll;
 		string dir;

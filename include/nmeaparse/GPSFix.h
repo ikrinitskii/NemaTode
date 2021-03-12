@@ -42,7 +42,7 @@ namespace nmea {
 		uint32_t prn;		// id - 0-32
 		double elevation;	// 0-90 deg
 		double azimuth;		// 0-359 deg
-		std::string toString() const;
+		[[nodiscard]] std::string toString() const;
 		explicit operator std::string() const;
 	};
 
@@ -75,7 +75,7 @@ namespace nmea {
 		double averageSNR();
 		double minSNR();
 		double maxSNR();
-		double percentComplete() const;
+		[[nodiscard]] double percentComplete() const;
 
 	};
 
@@ -94,6 +94,7 @@ namespace nmea {
 		int32_t hour;
 		int32_t min;
 		double sec;
+        int32_t milliseconds;
 
 		int32_t month;
 		int32_t day;
@@ -103,17 +104,18 @@ namespace nmea {
 		double rawTime;
 		int32_t rawDate;
 
-		time_t getTime() const;
+		[[nodiscard]] time_t getTime() const;
 
 		// Set directly from the NMEA time stamp
 		// hhmmss.sss
 		void setTime(double raw_ts);
+        void setTimeMilliseconds(const std::string &rawTime_str);
 
 		// Set directly from the NMEA date stamp
 		// ddmmyy
 		void setDate(int32_t raw_date);
 
-		std::string toString() const;
+		[[nodiscard]] std::string toString() const;
 	};
 
 
@@ -160,16 +162,17 @@ namespace nmea {
 		double latitude;		// degrees N
 		double longitude;		// degrees E
 		double speed;			// km/h
+
 		double travelAngle;		// degrees true north (0-360)
 		int32_t trackingSatellites;
 		int32_t visibleSatellites;
 
-		bool locked() const;
-		double horizontalAccuracy() const;
-		double verticalAccuracy() const;
-		bool hasEstimate() const;
+		[[nodiscard]] bool locked() const;
+		[[nodiscard]] double horizontalAccuracy() const;
+		[[nodiscard]] double verticalAccuracy() const;
+		[[nodiscard]] bool hasEstimate() const;
 		
-		std::chrono::seconds timeSinceLastUpdate() const;	// Returns seconds difference from last timestamp and right now.
+		[[nodiscard]] std::chrono::seconds timeSinceLastUpdate() const;	// Returns seconds difference from last timestamp and right now.
 
 		std::string toString();
 		explicit operator std::string();

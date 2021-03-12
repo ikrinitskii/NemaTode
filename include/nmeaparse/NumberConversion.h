@@ -34,7 +34,7 @@ public:
 
 	~NumberConversionError() override = default;
 
-	const char * what() const noexcept override {
+	[[nodiscard]] const char * what() const noexcept override {
 		return message.c_str();
 	}
 };
@@ -44,7 +44,7 @@ public:
 
 double parseDouble(const std::string& s);
 int64_t parseInt(const std::string& s, int radix = 10);
-
+int64_t parseInt(const char *s, int radix = 10, int digits = -1);
 //void NumberConversion_test();
 
 }

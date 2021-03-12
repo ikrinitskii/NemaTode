@@ -8,6 +8,7 @@
  */
 
 #include <nmeaparse/GPSFix.h>
+#include <nmeaparse/NumberConversion.h>
 #include <cmath>
 #include <string>
 #include <sstream>
@@ -129,6 +130,7 @@ GPSTimestamp::GPSTimestamp(){
 	hour = 0;
 	min = 0;
 	sec = 0;
+	milliseconds = 0;
 
 	month = 1;
 	day = 1;
@@ -181,6 +183,17 @@ void GPSTimestamp::setTime(double raw_ts){
 	hour = (int32_t)trunc(raw_ts / 10000.0);
 	min = (int32_t)trunc((raw_ts - hour * 10000) / 100.0);
 	sec = raw_ts - min * 100 - hour * 10000;
+}
+
+void GPSTimestamp::setTimeMilliseconds(const std::string &rawTime_str) {
+
+    std::size_t dig_pos = rawTime_str.find('.');
+    if (dig_pos == std::string::npos) {
+        milliseconds = 0;
+        return;
+    }
+    dig_pos += 1;
+    milliseconds = parseInt(rawTime_str.c_str() + dig_pos, 10, 3);
 }
 
 //ddmmyy

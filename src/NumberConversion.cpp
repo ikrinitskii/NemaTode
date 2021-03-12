@@ -41,6 +41,38 @@ namespace nmea {
 			return d;
 		}
 
+        int64_t parseInt(const char *s, int radix, int digits) {
+            char* p;
+            int64_t d = std::strtoll(s, &p, radix);
+
+            if (*p != 0) {
+                std::stringstream ss;
+                ss << "NumberConversionError: parseInt() error in argument \"" << s << "\", '"
+                   << *p << "' is not a number.";
+                throw NumberConversionError(ss.str());
+            }
+
+            if (digits != -1) {
+
+                auto real_digits = static_cast<int>(p - s);
+
+                if (digits > real_digits) {
+                    auto count = digits - real_digits;
+                    while (count) {
+                        d *= 10;
+                        --count;
+                    }
+                } else if (digits < real_digits) {
+                    auto count = real_digits - digits;
+                    while (count) {
+                        d /= 10;
+                        --count;
+                    }
+                }
+            }
+
+            return d;
+        }
 }
 
 /*
